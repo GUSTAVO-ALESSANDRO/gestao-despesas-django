@@ -196,3 +196,50 @@ erDiagram
 | **GET** | `/dashboard/users/` | Retorna métricas globais dos usuários (total, ativos e desativados). | Administrador Geral (`ADMIN`) |
 
 ---
+
+## Estrutura do Projeto
+
+A arquitetura do projeto segue a modularidade recomendada pelo Django, separando as responsabilidades principais entre o núcleo de configuração e os aplicativos específicos da regra de negócio:
+
+```text
+gestao-despesas-django/
+├── requirements.txt
+├── gestao_despesas/
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── accounts/
+│   ├── migrations/
+│   ├── templates/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   └── tests.py
+├── expenses/
+│   ├── migrations/
+│   ├── templates/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   └── tests.py
+├── static/
+└── staticfiles/
+
+```
+
+* **gestao_despesas/**: Pasta principal que contém os arquivos de configuração global do projeto.
+* **settings.py**: Arquivo onde são definidas as configurações gerais, conexões com o PostgreSQL, aplicativos instalados e middlewares.
+* **urls.py**: Arquivo central que mapeia as rotas globais da aplicação web para os aplicativos correspondentes.
+
+
+* **accounts/**: Aplicativo responsável pela gestão de usuários, autenticação, perfis e permissões.
+* **expenses/**: Aplicativo responsável pela lógica de negócio principal, gerenciando grupos, códigos de convite, membros, despesas e faturas divididas.
+* **static/**: Pasta dedicada ao armazenamento de arquivos estáticos como folhas de estilo CSS, scripts JavaScript e imagens para a interface Bootstrap.
