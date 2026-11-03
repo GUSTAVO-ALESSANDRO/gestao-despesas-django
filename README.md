@@ -246,3 +246,8 @@ gestao-despesas-django/
 * **accounts/**: Aplicativo responsável pela gestão de usuários, autenticação, perfis e permissões.
 * **expenses/**: Aplicativo responsável pela lógica de negócio principal, gerenciando grupos, códigos de convite, membros, despesas e faturas divididas.
 * **static/**: Pasta dedicada ao armazenamento de arquivos estáticos como folhas de estilo CSS, scripts JavaScript e imagens para a interface Bootstrap.
+
+
+* **manage.py**: Utilitário de linha de comando principal do Django que permite interagir com o projeto para executar tarefas administrativas, como rodar o servidor de desenvolvimento, aplicar migrações e criar superusuários.
+* **.env**: Arquivo de configuração local (não versionado) que armazena de forma segura as variáveis de ambiente e credenciais sensíveis do banco de dados PostgreSQL.
+* **README.md**: Documentação principal do projeto que apresenta a visão geral do sistema, instruções de instalação, arquitetura de pastas e guias de execução.
