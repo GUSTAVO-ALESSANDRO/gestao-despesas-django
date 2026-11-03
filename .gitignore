@@ -1,0 +1,19 @@
+# Ambiente virtual
+venv/
+env/
+
+# Python / Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+
+# Banco de dados local
+db.sqlite3
+
+# Arquivos de ambiente sensíveis
+.env
+
+# Arquivos estáticos de produção
+staticfiles/
