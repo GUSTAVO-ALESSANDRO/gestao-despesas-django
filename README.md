@@ -94,6 +94,74 @@ Com o servidor em execução, abra o seu navegador de preferência e acesse o en
 
 ---
 
+## Modelagem do Banco de Dados
+
+```mermaid
+erDiagram
+    USERS ||--o{ GROUPS : "cria (created_by)"
+    USERS ||--o{ GROUP_MEMBERSHIPS : "possui participações"
+    GROUPS ||--o{ GROUP_MEMBERSHIPS : "contém membros"
+    GROUPS ||--o{ EXPENSES : "possui despesas"
+    USERS ||--o{ EXPENSES : "paga (paid_by)"
+    USERS ||--o{ EXPENSES : "cadastra (created_by)"
+    EXPENSES ||--o{ EXPENSE_SPLITS : "divide em faturas"
+    USERS ||--o{ EXPENSE_SPLITS : "deve (user_id)"
+
+    USERS {
+        uuid id PK
+        string username
+        string email
+        string password
+        string first_name
+        string last_name
+        string role "ADMIN | USER"
+        boolean is_active
+        timestamp created_at
+    }
+
+    GROUPS {
+        uuid id PK
+        string name
+        string description
+        string invite_code
+        uuid created_by FK
+        boolean is_active
+        timestamp created_at
+    }
+
+    GROUP_MEMBERSHIPS {
+        uuid id PK
+        uuid user_id FK
+        uuid group_id FK
+        boolean is_group_admin
+        boolean is_accepted
+        timestamp joined_at
+    }
+
+    EXPENSES {
+        uuid id PK
+        uuid group_id FK
+        uuid paid_by FK
+        uuid created_by FK
+        string title
+        string description
+        decimal amount
+        date date
+        timestamp created_at
+    }
+
+    EXPENSE_SPLITS {
+        uuid id PK
+        uuid expense_id FK
+        uuid user_id FK
+        decimal amount_owed
+        boolean is_paid
+    }
+
+```
+
+---
+
 ## Mapeamento de Rotas
 
 | MÉTODO | ROTA | Explicação | Permissão |
