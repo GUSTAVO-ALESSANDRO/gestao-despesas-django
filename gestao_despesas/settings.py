@@ -136,3 +136,6 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# Informa ao Django para usar o CustomUser do app accounts como modelo de autenticação global
+AUTH_USER_MODEL = 'accounts.CustomUser'
