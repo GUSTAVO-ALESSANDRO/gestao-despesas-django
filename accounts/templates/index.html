@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Página Inicial - Gestão de Despesas{% endblock %}
+
+{% block conteudo %}
+<div class="p-5 mb-4 bg-body-tertiary rounded-3 border">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold text-primary">Bem-vindo ao Sistema de Despesas</h1>
+        <p class="col-md-8 fs-4">Gerencie contas compartilhadas em grupo de forma simples, transparente e automatizada, inspirado no conceito do Splitwise.</p>
+        <hr class="my-4">
+        <p>Utilize o menu superior para navegar na aplicação ou acesse o ambiente administrativo com o botão abaixo.</p>
+        <a class="btn btn-primary btn-lg" href="/admin/" role="button"><i class="fa-solid fa-gauge"></i> Acessar Painel Admin</a>
+    </div>
+</div>
+{% endblock %}
