@@ -92,3 +92,39 @@ Com o servidor em execução, abra o seu navegador de preferência e acesse o en
 * Divisão automática e individualizada de despesas entre os participantes do grupo com controle de quitação por fatia.
 * Painel administrativo customizado e restrito aos administradores gerais, contendo métricas e relatórios globais de usuários e grupos ativos ou desativados.
 
+---
+
+## Mapeamento de Rotas
+
+| MÉTODO | ROTA | Explicação | Permissão |
+| --- | --- | --- | --- |
+| **POST** | `/auth/register/` | Processa o cadastro de uma nova conta de usuário comum no sistema. | Público |
+| **POST** | `/auth/login/` | Autentica o usuário na sessão através de credenciais válidas. | Público |
+| **POST** | `/auth/logout/` | Encerra a sessão ativa do usuário atual. | Usuário Autenticado |
+| **GET** | `/users/` | Lista todos os usuários cadastrados no sistema. | Administrador Geral (`ADMIN`) |
+| **POST** | `/users/` | Cria um novo usuário diretamente pela interface administrativa. | Administrador Geral (`ADMIN`) |
+| **GET** | `/users/:id` | Exibe os dados cadastrais de um usuário específico. | Usuário Autenticado |
+| **PUT** | `/users/:id` | Atualiza as informações cadastrais do usuário. | Usuário Autenticado |
+| **DELETE** | `/users/:id` | Executa a exclusão lógica do usuário alterando o status `is_active`. | Administrador Geral (`ADMIN`) |
+| **GET** | `/groups/` | Lista os grupos em que o usuário participa. | Próprio Usuário |
+| **GET** | `/groups/` | Lista todos os grupos eexistentes. | Administrador Geral (`ADMIN`) |
+| **POST** | `/groups/` | Cria um novo grupo, gera o código de convite e define o criador como administrador. | Usuário Autenticado |
+| **GET** | `/groups/:id` | Exibe a página de detalhes do grupo como membros, despesas, etc. | Membros do Grupo ou Admin Geral (`ADMIN`) |
+| **POST** | `/groups/:id` | Permite que o usuário ingresse em um grupo utilizando o código de convite. | Usuário Autenticado |
+| **PUT** | `/groups/:id` | Atualiza as informações do grupo (nome ou descrição). | Admin do Grupo ou Admin Geral |
+| **DELETE** | `/groups/:id` | Executa a exclusão lógica do grupo alterando o status `is_active`. | Admin do Grupo ou Admin Geral |
+| **GET** | `/groups/:id/members/:user_id` | Exibe o status e os dados de um membro específico no grupo. | Membros do Grupo ou Admin |
+| **PUT** | `/groups/:id/members/:user_id` | Aceita o membro (`is_accepted=True`) ou o promove a administrador do grupo. | Admin do Grupo ou Admin Geral |
+| **DELETE** | `/groups/:id/members/:user_id` | Remove o membro do grupo (expulsão ou saída voluntária). | Admin do Grupo ou Admin Geral |
+| **GET** | `/groups/:id/expenses/` | Lista todas as despesas cadastradas dentro do grupo específico. | Membros do Grupo ou Admin Geral |
+| **POST** | `/groups/:id/expenses/` | Cadastra uma nova despesa no grupo e gera as divisões correspondentes. | Membros do Grupo |
+| **GET** | `/groups/:id/expenses/:expense_id` | Exibe os detalhes completos de uma despesa específica. | Membros do Grupo ou Admin Geral|
+| **PUT** | `/groups/:id/expenses/:expense_id` | Atualiza os dados de uma despesa já cadastrada. | Admin Geral, Admin do Grupo, Pagador ou Criador da Despesa |
+| **DELETE** | `/groups/:id/expenses/:expense_id` | Exclui a despesa e remove suas faturas associadas. | Admin do Sistema, Admin do Grupo, Pagador ou Criador da Despesa |
+| **GET** | `/groups/:id/expenses/:expense_id/members/` | Lista os participantes envolvidos na divisão da despesa. | Membros do Grupo |
+| **POST** | `/groups/:id/expenses/:expense_id/members/` | Adiciona um novo participante para dividir a despesa específica. | Admin do Grupo, Pagador ou Criador da Despesa |
+| **PUT** | `/groups/:id/expenses/:expense_id/members/:split_id/` | Altera o status de quitação da fatia (`is_paid`). | Devedor, Pagador, Criador ou Admin do Grupo |
+| **GET** | `/dashboard/groups/` | Retorna métricas globais dos grupos (total, ativos e desativados). | Administrador Geral (`ADMIN`) |
+| **GET** | `/dashboard/users/` | Retorna métricas globais dos usuários (total, ativos e desativados). | Administrador Geral (`ADMIN`) |
+
+---
