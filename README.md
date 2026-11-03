@@ -203,7 +203,10 @@ A arquitetura do projeto segue a modularidade recomendada pelo Django, separando
 
 ```text
 gestao-despesas-django/
+├── manage.py
+├── README.md
 ├── requirements.txt
+├── .env
 ├── gestao_despesas/
 │   ├── __init__.py
 │   ├── asgi.py
