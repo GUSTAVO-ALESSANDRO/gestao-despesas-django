@@ -1,0 +1,33 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card card-outline card-info shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title fw-bold m-0">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>Status das Faturas Divididas
+                </h3>
+                <select id="expenseFilterSelect" class="form-select form-select-sm w-auto">
+                    <option value="">Todas as Despesas</option>
+                    {% for exp in all_expenses %}
+                        <option value="{{ exp.id }}" {% if selected_expense == exp.id %}selected{% endif %}>
+                            {{ exp.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="card-body">
+                <canvas id="splitsChart" data-paid="{{ paid_splits|default:0 }}" 
+                data-unpaid="{{ unpaid_splits|default:0 }}" style="max-height: 220px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/charts.js' %}"></script>
+
+{{ block.super }}
+{% endblock %}

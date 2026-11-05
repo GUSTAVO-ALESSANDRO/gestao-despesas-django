@@ -1,0 +1,30 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card card-outline card-warning shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title fw-bold m-0">
+                    <i class="fas fa-users-cog me-2"></i>
+                Status dos Membros nos Grupos</h3>
+                <select id="groupFilterSelect" class="form-select form-select-sm w-auto">
+                    <option value="">Todos os Grupos</option>
+                    {% for g in all_groups %}
+                        <option value="{{ g.id }}" {% if selected_group == g.id %}selected{% endif %}>{{ g.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="card-body">
+                <canvas id="membershipChart" data-accepted="{{ accepted_members|default:0 }}" data-pending="{{ pending_members|default:0 }}" style="max-height: 220px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/charts.js' %}"></script>
+
+{{ block.super }}
+{% endblock %}
