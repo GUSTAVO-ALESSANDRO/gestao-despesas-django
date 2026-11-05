@@ -5,6 +5,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.forms.widgets import Widget
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 from .models import CustomUser
 from .filters import GroupParticipationFilter
 
@@ -25,6 +26,9 @@ class CustomUserCreationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+        # O perfil ADMIN concede acesso ao admin, mas nunca privilégios de superusuário.
+        user.is_staff = user.role == 'ADMIN'
+        user.is_superuser = False
         if commit:
             user.save()
         return user
@@ -49,11 +53,45 @@ class CustomUserChangeForm(UserChangeForm):
         widget=PasswordResetLinkWidget()
     )
 
+    class Meta(UserChangeForm.Meta):
+        model = CustomUser
+        fields = '__all__'
+
+    def clean_password(self):
+        # O widget de redefinição não envia o hash atual; um valor vazio não
+        # deve apagar a senha quando o cadastro é editado.
+        return self.instance.password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Superusuários mantêm a flag nativa. Para os demais, role é a fonte
+        # única da flag de acesso ao admin.
+        if cleaned_data is not None:
+            cleaned_data['is_staff'] = (
+                True if cleaned_data.get('is_superuser', False)
+                else cleaned_data.get('role') == 'ADMIN'
+            )
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_staff = user.is_superuser or user.role == 'ADMIN'
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
+
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     change_list_template = 'admin/users.html'
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'first_name', 'last_name', 'email', 'password', 'role', 'is_active'),
+        }),
+    )
     
     list_display = ('username', 'first_name', 'last_name', 'email', 'role', 'is_active', 'created_at')
     list_filter = ('role', 'is_active', GroupParticipationFilter, 'created_at')
@@ -69,10 +107,12 @@ class CustomUserAdmin(UserAdmin):
 
     # Envia os dados de usuários em formato JSON para o gráfico
     def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        users_list = list(CustomUser.objects.values('created_at', 'is_active'))
-        for u in users_list:
-            if u['created_at']:
-                u['created_at'] = u['created_at'].isoformat()
-        extra_context['users_json'] = users_list
-        return super().changelist_view(request, extra_context=extra_context)
+        response = super().changelist_view(request, extra_context=extra_context)
+        if hasattr(response, 'context_data'):
+            response.context_data['chart_today'] = timezone.localdate().isoformat()
+            users = response.context_data['cl'].queryset.values_list('created_at', flat=True)
+            response.context_data['users_json'] = [
+                {'created_at': timezone.localtime(created_at).date().isoformat()}
+                for created_at in users
+            ]
+        return response

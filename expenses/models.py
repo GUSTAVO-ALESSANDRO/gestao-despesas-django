@@ -4,7 +4,8 @@ import string
 from decimal import Decimal
 
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
 from django.conf import settings
 
 INVITE_CODE_ALPHABET = string.ascii_uppercase + string.digits
@@ -37,7 +38,13 @@ class Group(models.Model):
     def save(self, *args, **kwargs):
         if not self.invite_code:
             self.invite_code = self.generate_invite_code()
-        super().save(*args, **kwargs)
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            GroupMembership.objects.update_or_create(
+                group=self,
+                user=self.created_by,
+                defaults={'is_accepted': True, 'is_group_admin': True},
+            )
 
 class GroupMembership(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -58,6 +65,23 @@ class GroupMembership(models.Model):
     def __str__(self):
         return f"{self.user.username} em {self.group.name}"
 
+    def clean(self):
+        super().clean()
+        if self.is_group_admin and not self.is_accepted:
+            raise ValidationError({
+                'is_group_admin': 'Um membro precisa ser aceito antes de se tornar administrador do grupo.'
+            })
+        if (
+            self.group_id and self.user_id
+            and Group.objects.filter(pk=self.group_id, created_by_id=self.user_id).exists()
+            and (not self.is_accepted or not self.is_group_admin)
+        ):
+            raise ValidationError('O criador do grupo deve permanecer como membro aceito e administrador.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean(validate_unique=False, validate_constraints=False)
+        super().save(*args, **kwargs)
+
 class Expense(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="expenses")
     paid_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="paid_expenses")
@@ -76,6 +100,25 @@ class Expense(models.Model):
     def __str__(self):
         return f"{self.title} - R$ {self.amount}"
 
+    def clean(self):
+        super().clean()
+        if not self.group_id:
+            return
+        for field, user_id, label in (
+            ('paid_by', self.paid_by_id, 'pagador'),
+            ('created_by', self.created_by_id, 'responsável pelo cadastro'),
+        ):
+            if user_id and not GroupMembership.objects.filter(
+                group_id=self.group_id, user_id=user_id, is_accepted=True
+            ).exists():
+                raise ValidationError({
+                    field: f'O {label} deve ser um membro aceito do grupo da despesa.'
+                })
+
+    def save(self, *args, **kwargs):
+        self.full_clean(validate_unique=False, validate_constraints=False)
+        super().save(*args, **kwargs)
+
 class ExpenseSplit(models.Model):
     expense = models.ForeignKey(Expense, on_delete=models.CASCADE, related_name="splits")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -93,3 +136,19 @@ class ExpenseSplit(models.Model):
 
     def __str__(self):
         return f"{self.user.username} deve R$ {self.amount_owed}"
+
+    def clean(self):
+        super().clean()
+        if self.expense_id and self.user_id:
+            if not GroupMembership.objects.filter(
+                group_id=self.expense.group_id,
+                user_id=self.user_id,
+                is_accepted=True,
+            ).exists():
+                raise ValidationError({
+                    'user': 'O participante deve ser um membro aceito do grupo da despesa.'
+                })
+
+    def save(self, *args, **kwargs):
+        self.full_clean(validate_unique=False, validate_constraints=False)
+        super().save(*args, **kwargs)

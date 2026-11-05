@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 from .models import Group, GroupMembership, Expense, ExpenseSplit
 from .filters import AmountRangeFilter, AmountOwedRangeFilter, SettlementStatusFilter, HasExpensesFilter, MemberCountFilter
 
@@ -29,13 +30,15 @@ class GroupAdmin(admin.ModelAdmin):
 
     # Sobrescreve a view da lista para injetar dados em formato JSON no contexto adicional
     def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        groups_list = list(Group.objects.values('created_at', 'is_active'))
-        for g in groups_list:
-            if g['created_at']:
-                g['created_at'] = g['created_at'].isoformat()
-        extra_context['groups_json'] = groups_list
-        return super().changelist_view(request, extra_context=extra_context)
+        response = super().changelist_view(request, extra_context=extra_context)
+        if hasattr(response, 'context_data'):
+            response.context_data['chart_today'] = timezone.localdate().isoformat()
+            groups = response.context_data['cl'].queryset.values_list('created_at', flat=True)
+            response.context_data['groups_json'] = [
+                {'created_at': timezone.localtime(created_at).date().isoformat()}
+                for created_at in groups
+            ]
+        return response
 
 
 # Configuração da classe de administração para o modelo GroupMembership
@@ -81,13 +84,15 @@ class ExpenseAdmin(admin.ModelAdmin):
 
     # Sobrescreve a view da lista para injetar as despesas em formato JSON no contexto adicional
     def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        expenses_list = list(Expense.objects.values('created_at'))
-        for e in expenses_list:
-            if e['created_at']:
-                e['created_at'] = e['created_at'].isoformat()
-        extra_context['expenses_json'] = expenses_list
-        return super().changelist_view(request, extra_context=extra_context)
+        response = super().changelist_view(request, extra_context=extra_context)
+        if hasattr(response, 'context_data'):
+            response.context_data['chart_today'] = timezone.localdate().isoformat()
+            expenses = response.context_data['cl'].queryset.values_list('created_at', flat=True)
+            response.context_data['expenses_json'] = [
+                {'created_at': timezone.localtime(created_at).date().isoformat()}
+                for created_at in expenses
+            ]
+        return response
 
 
 # Configuração da classe de administração para o modelo ExpenseSplit
