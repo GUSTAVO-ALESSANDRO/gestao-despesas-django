@@ -39,6 +39,25 @@ class AdminAccessTests(TestCase):
         response = self.client.get('/admin/accounts/customuser/')
         self.assertEqual(response.status_code, 200)
 
+    def test_grafico_usuarios_reflete_queryset_filtrado(self):
+        admin = CustomUser.objects.create_superuser(
+            username='admin', email='admin@split.com', password='admin', role='ADMIN'
+        )
+        CustomUser.objects.create_user(username='comum', password='senha-forte-123', role='USER')
+        self.client.force_login(admin)
+
+        response = self.client.get('/admin/accounts/customuser/?role__exact=ADMIN')
+        self.assertEqual(response.status_code, 200)
+        chart_records = response.context['users_json']
+        self.assertEqual(len(chart_records), response.context['cl'].queryset.count())
+        self.assertEqual(len(chart_records), 1)
+        self.assertEqual(set(chart_records[0]), {'created_at'})
+        self.assertRegex(chart_records[0]['created_at'], r'^\d{4}-\d{2}-\d{2}$')
+
+        unfiltered = self.client.get('/admin/accounts/customuser/')
+        self.assertEqual(len(unfiltered.context['users_json']), unfiltered.context['cl'].queryset.count())
+        self.assertEqual(len(unfiltered.context['users_json']), 2)
+
     def test_formulario_admin_cria_usuario_com_senha_hash_e_perfil_consistente(self):
         form = CustomUserCreationForm(data={
             'username': 'operador',

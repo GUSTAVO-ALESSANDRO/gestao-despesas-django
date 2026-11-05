@@ -5,6 +5,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.forms.widgets import Widget
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 from .models import CustomUser
 from .filters import GroupParticipationFilter
 
@@ -106,10 +107,12 @@ class CustomUserAdmin(UserAdmin):
 
     # Envia os dados de usuários em formato JSON para o gráfico
     def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        users_list = list(CustomUser.objects.values('created_at', 'is_active'))
-        for u in users_list:
-            if u['created_at']:
-                u['created_at'] = u['created_at'].isoformat()
-        extra_context['users_json'] = users_list
-        return super().changelist_view(request, extra_context=extra_context)
+        response = super().changelist_view(request, extra_context=extra_context)
+        if hasattr(response, 'context_data'):
+            response.context_data['chart_today'] = timezone.localdate().isoformat()
+            users = response.context_data['cl'].queryset.values_list('created_at', flat=True)
+            response.context_data['users_json'] = [
+                {'created_at': timezone.localtime(created_at).date().isoformat()}
+                for created_at in users
+            ]
+        return response

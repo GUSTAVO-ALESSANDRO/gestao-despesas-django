@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
 
-    // Configura e processa os dados temporais para montar gráficos interativos por Semana, Mês ou Ano
-    function setupClientSideTemporalChart(canvasId, selectId, rawDataId, datasetType) {
+    // Agrupa a data local de criação por semana, mês ou ano selecionado.
+    function setupClientSideTemporalChart(canvasId, selectId, rawDataId, datasetLabel) {
         const canvas = document.getElementById(canvasId);
         const select = document.getElementById(selectId);
         const dataElem = document.getElementById(rawDataId);
@@ -12,15 +12,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Agrupa os itens brutos do JSON nas faixas temporais correspondentes (Semana, Mês e Ano)
         function processData() {
-            const now = new Date();
+            const now = new Date(`${canvas.dataset.today}T00:00:00`);
 
             const labelsWeek = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-            const labelsMonth = ["Dias 1-7", "Dias 7-14", "Dias 14-21", "Dias 21-31"];
+            const labelsMonth = ["Dias 1-7", "Dias 8-14", "Dias 15-21", "Dias 22-fim"];
             const labelsYear = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
-            let weekAct = [0,0,0,0,0,0,0], weekInact = [0,0,0,0,0,0,0], weekTot = [0,0,0,0,0,0,0];
-            let monthAct = [0,0,0,0], monthInact = [0,0,0,0], monthTot = [0,0,0,0];
-            let yearAct = new Array(12).fill(0), yearInact = new Array(12).fill(0), yearTot = new Array(12).fill(0);
+            const weekTotal = new Array(7).fill(0);
+            const monthTotal = new Array(4).fill(0);
+            const yearTotal = new Array(12).fill(0);
 
             // Converte o índice padrão de dias do JS para o formato baseado em segunda-feira (0 = Segunda ... 6 = Domingo)
             function getMondayBasedDay(d) {
@@ -39,51 +39,35 @@ document.addEventListener("DOMContentLoaded", function() {
                 return d >= firstday && d <= lastday;
             }
 
-            // Itera sobre todos os itens brutos para contabilizá-los nas categorias de Semana, Mês e Ano
+            // As datas vêm como YYYY-MM-DD no fuso da aplicação, sem conversão de fuso no navegador.
             rawItems.forEach(item => {
-                const d = new Date(item.created_at);
-                const isActive = item.is_active !== undefined ? item.is_active : true;
+                const [year, month, day] = item.created_at.split('-').map(Number);
+                const d = new Date(year, month - 1, day);
 
                 // Processa e contabiliza os dados referentes ao período semanal
                 if (isCurrentWeek(d)) {
                     let w = getMondayBasedDay(d);
-                    if (datasetType !== 'single') {
-                        if (isActive) weekAct[w]++; else weekInact[w]++;
-                    } else {
-                        weekTot[w]++;
-                    }
+                    weekTotal[w]++;
                 }
 
                 // Processa e contabiliza os dados referentes ao período mensal atual
                 if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
                     const day = d.getDate();
-                    let idx = day <= 7 ? 0 : (day <= 14 ? 1 : (day <= 21 ? 2 : 3));
-                    if (datasetType !== 'single') {
-                        if (isActive) monthAct[idx]++; else monthInact[idx]++;
-                    } else {
-                        monthTot[idx]++;
-                    }
+                    const idx = Math.floor((day - 1) / 7);
+                    monthTotal[idx]++;
                 }
 
                 // Processa e contabiliza os dados referentes ao período anual atual
                 if (d.getFullYear() === now.getFullYear()) {
                     const m = d.getMonth();
-                    if (datasetType !== 'single') {
-                        if (isActive) yearAct[m]++; else yearInact[m]++;
-                    } else {
-                        yearTot[m]++;
-                    }
+                    yearTotal[m]++;
                 }
             });
 
             // Retorna um objeto estruturado contendo os rótulos e os valores mapeados para cada período
             return {
                 dates: { week: labelsWeek, month: labelsMonth, year: labelsYear },
-                values: {
-                    week: datasetType !== 'single' ? { active: weekAct, inactive: weekInact } : weekTot,
-                    month: datasetType !== 'single' ? { active: monthAct, inactive: monthInact } : monthTot,
-                    year: datasetType !== 'single' ? { active: yearAct, inactive: yearInact } : yearTot
-                }
+                values: { week: weekTotal, month: monthTotal, year: yearTotal }
             };
         }
 
@@ -105,19 +89,10 @@ document.addEventListener("DOMContentLoaded", function() {
             chart.data.labels = processed.dates[period] || [];
             const val = processed.values[period] || [];
 
-            if (datasetType !== 'single') {
-                chart.data.datasets = [
-                    { label: 'Ativos', data: val.active || [], borderColor: '#007bff', 
-                        backgroundColor: '#007bff', fill: false },
-                    { label: 'Desativados / Inativos', data: val.inactive || [], 
-                        borderColor: '#dc3545', backgroundColor: '#dc3545', fill: false }
-                ];
-            } else {
-                chart.data.datasets = [
-                    { label: 'Quantidade Criada', data: val, 
-                        borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', fill: true }
-                ];
-            }
+            chart.data.datasets = [
+                { label: datasetLabel, data: val,
+                    borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', fill: true }
+            ];
             chart.update();
         }
 
@@ -131,9 +106,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Inicializa os gráficos temporais na página para Usuários, Grupos e Despesas
-    setupClientSideTemporalChart('usersTemporalChart', 'usersTemporalSelect', 'users-json-data', 'users');
-    setupClientSideTemporalChart('groupsChart', 'groupsSelect', 'groups-json-data', 'groups');
-    setupClientSideTemporalChart('expenseChart', 'expenseSelect', 'expenses-json-data', 'single');
+    setupClientSideTemporalChart('usersTemporalChart', 'usersTemporalSelect', 'users-json-data', 'Usuários cadastrados');
+    setupClientSideTemporalChart('groupsChart', 'groupsSelect', 'groups-json-data', 'Grupos criados');
+    setupClientSideTemporalChart('expenseChart', 'expenseSelect', 'expenses-json-data', 'Despesas cadastradas');
 
     // Constrói e renderiza o gráfico de barras para exibição de membros aceitos e pendentes
     const membershipCanvas = document.getElementById('membershipChart');

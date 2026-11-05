@@ -214,3 +214,28 @@ class AdminFiltersTests(TestCase):
     def test_filtro_participacao_em_grupos(self):
         self.assertEqual(self.results('/admin/accounts/customuser/?participa_grupos=sim'), [self.user])
         self.assertEqual(self.results('/admin/accounts/customuser/?participa_grupos=nao'), [self.admin])
+
+    def test_grafico_de_grupos_reflete_queryset_filtrado(self):
+        Group.objects.create(name='Inativo', created_by=self.user, is_active=False)
+        response = self.client.get('/admin/expenses/group/?is_active__exact=0')
+        self.assertEqual(response.status_code, 200)
+        chart_records = response.context['groups_json']
+        self.assertEqual(len(chart_records), response.context['cl'].queryset.count())
+        self.assertEqual(len(chart_records), 1)
+        self.assertEqual(set(chart_records[0]), {'created_at'})
+        self.assertRegex(chart_records[0]['created_at'], r'^\d{4}-\d{2}-\d{2}$')
+        unfiltered = self.client.get('/admin/expenses/group/')
+        self.assertEqual(len(unfiltered.context['groups_json']), unfiltered.context['cl'].queryset.count())
+        self.assertEqual(len(unfiltered.context['groups_json']), 2)
+
+    def test_grafico_de_despesas_reflete_queryset_filtrado(self):
+        response = self.client.get('/admin/expenses/expense/?faixa_valor=ate_50')
+        self.assertEqual(response.status_code, 200)
+        chart_records = response.context['expenses_json']
+        self.assertEqual(len(chart_records), response.context['cl'].queryset.count())
+        self.assertEqual(len(chart_records), 1)
+        self.assertEqual(set(chart_records[0]), {'created_at'})
+        self.assertRegex(chart_records[0]['created_at'], r'^\d{4}-\d{2}-\d{2}$')
+        unfiltered = self.client.get('/admin/expenses/expense/')
+        self.assertEqual(len(unfiltered.context['expenses_json']), unfiltered.context['cl'].queryset.count())
+        self.assertEqual(len(unfiltered.context['expenses_json']), 2)
