@@ -1,0 +1,29 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block content %}
+{{ expenses_json|json_script:"expenses-json-data" }}
+
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card card-outline card-danger shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title fw-bold m-0"><i class="fas fa-receipt me-2"></i>Volume de Despesas Lançadas</h3>
+                <select id="expenseSelect" class="form-select form-select-sm w-auto">
+                    <option value="week">Esta Semana</option>
+                    <option value="month">Este Mês</option>
+                    <option value="year" selected>Este Ano</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <canvas id="expenseChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/charts.js' %}"></script>
+
+{{ block.super }}
+{% endblock %}

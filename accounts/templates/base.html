@@ -11,9 +11,9 @@
 </head>
 <body>
     <!-- Cabeçalho / Navbar responsiva com Bootstrap -->
-    <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="/"><i class="fa-solid fa-wallet text-primary"></i> SplitExpenses</a>
+            <a class="navbar-brand fw-bold text-primary" href="/"><i class="fa-solid fa-wallet"></i> SplitExpenses</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -32,12 +32,15 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     <!-- Botão de Alternância de Tema Claro / Escuro -->
                     <li class="nav-item me-3">
-                        <button class="btn btn-outline-secondary btn-sm" id="btn-theme-toggle" onclick="toggleTheme()">
+                        <button class="btn btn-outline-secondary btn-sm rounded-circle" id="btn-theme-toggle" onclick="toggleTheme()" title="Alternar Tema">
                             <i class="fa-solid fa-moon" id="theme-icon"></i>
                         </button>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-primary text-white px-3" href="/admin/"><i class="fa-solid fa-lock"></i> Admin</a>
+                        <!-- Botão Admin -->
+                        <a class="btn btn-dark btn-sm px-3 fw-bold shadow-sm" href="/admin/">
+                            <i class="fa-solid fa-user-shield text-warning me-1"></i> Admin
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -51,24 +54,40 @@
     </main>
 
     <!-- Rodapé -->
-    <footer class="text-center py-4 border-top mt-auto">
-        <p class="text-muted mb-0">&copy; 2026 Gestão de Despesas</p>
+    <footer class="text-center py-4 border-top mt-auto bg-body-tertiary">
+        <p class="text-muted mb-0">&copy; 2026 Gestão de Despesas - UFLA</p>
     </footer>
 
     <!-- Bootstrap 5 JS Bundle CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Script para gerenciar a troca de tema Claro/Escuro -->
+    
+    <!-- Script com Persistência de Tema no LocalStorage -->
     <script>
-        function toggleTheme() {
+        // Carrega o tema salvo ao iniciar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('app-theme') || 'light';
+            setTheme(savedTheme);
+        });
+
+        function setTheme(theme) {
             const htmlEl = document.documentElement;
             const themeIcon = document.getElementById('theme-icon');
-            if (htmlEl.getAttribute('data-bs-theme') === 'light') {
-                htmlEl.setAttribute('data-bs-theme', 'dark');
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            htmlEl.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('app-theme', theme);
+            
+            if (theme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
             } else {
-                htmlEl.setAttribute('data-bs-theme', 'light');
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
             }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
         }
     </script>
 </body>

@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -139,3 +140,25 @@ MAILERS = {
 
 # Informa ao Django para usar o CustomUser do app accounts como modelo de autenticação global
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+
+# Configurações do Tema Jazzmin
+JAZZMIN_SETTINGS = {
+    "site_title": "Gestão de Despesas Admin",
+    "site_header": "SplitExpenses",
+    "site_brand": "SplitExpenses",
+    "welcome_sign": "Painel de Controle e Administração",
+    "copyright": "UFLA - GAC116",
+    "search_model": "accounts.CustomUser",
+    "custom_js": "js/theme.js",
+    "custom_links": {
+        "expenses": [
+            {
+                "name": "Ir para o Site (Home)",
+                "url": "/",
+                "icon": "fas fa-home",
+                "permissions": [],
+            }
+        ]
+    },
+}
