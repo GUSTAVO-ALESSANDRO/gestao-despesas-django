@@ -10,7 +10,7 @@ A aplicação web de gestão de despesas compartilhadas foi desenvolvida com o o
 | INTEGRANTE | GITHUB |
 | --- | --- |
 | Gustavo Alessandro de Souza Sabino | [https://github.com/GUSTAVO-ALESSANDRO](https://github.com/GUSTAVO-ALESSANDRO) |
-| INTEGRANTE 2 | [GitHub](https://www.google.com/search?q=https://github.com/link-integrante-2) |
+| Diego Alves de Oliveira | [https://github.com/diego-codev](https://github.com/diego-codev) |
 | INTEGRANTE 3 | [GitHub](https://www.google.com/search?q=https://github.com/link-integrante-3) |
 
 ---
