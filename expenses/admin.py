@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Group, GroupMembership, Expense, ExpenseSplit
+from .filters import AmountRangeFilter, AmountOwedRangeFilter, SettlementStatusFilter, HasExpensesFilter, MemberCountFilter
 
 # Configuração da classe de administração para o modelo Group
 @admin.register(Group)
@@ -7,7 +8,7 @@ class GroupAdmin(admin.ModelAdmin):
     change_list_template = 'admin/groups.html'
     list_display = ('name', 'description', 'invite_code', 'created_by', 'is_active', 'created_at')
     search_fields = ('name', 'invite_code', 'description')
-    list_filter = ('is_active', 'created_at')
+    list_filter = ('is_active', HasExpensesFilter, MemberCountFilter, 'created_by', 'created_at')
     readonly_fields = ('created_at',)
 
     # Sobrescreve a view da lista para injetar dados em formato JSON no contexto adicional
@@ -57,7 +58,7 @@ class GroupMembershipAdmin(admin.ModelAdmin):
 class ExpenseAdmin(admin.ModelAdmin):
     change_list_template = 'admin/expense.html'
     list_display = ('title', 'group', 'paid_by', 'created_by', 'amount', 'date', 'created_at')
-    list_filter = ('date', 'group', 'created_at')
+    list_filter = (AmountRangeFilter, SettlementStatusFilter, 'group', 'paid_by', 'date', 'created_at')
     search_fields = ('title', 'description')
     readonly_fields = ('created_at',)
 
@@ -77,7 +78,7 @@ class ExpenseAdmin(admin.ModelAdmin):
 class ExpenseSplitAdmin(admin.ModelAdmin):
     change_list_template = 'admin/expensesplit.html'
     list_display = ('expense', 'user', 'amount_owed', 'is_paid')
-    list_filter = ('is_paid',)
+    list_filter = ('is_paid', AmountOwedRangeFilter, 'expense__group', 'user')
     search_fields = ('expense__title', 'user__username')
 
     # Filtra o queryset com base no parâmetro 'expense_id' recebido via requisição GET
