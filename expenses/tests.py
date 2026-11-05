@@ -49,8 +49,10 @@ class GroupMembershipModelTests(TestCase):
         self.group = Group.objects.create(name='República', created_by=self.user)
 
     def test_impede_membro_duplicado_no_mesmo_grupo(self):
+        invited_user = CustomUser.objects.create_user(username='convidado', password='senha-forte-123')
+        GroupMembership.objects.create(user=invited_user, group=self.group)
         with self.assertRaises(IntegrityError), transaction.atomic():
-            GroupMembership.objects.create(user=self.user, group=self.group)
+            GroupMembership.objects.create(user=invited_user, group=self.group)
 
     def test_membro_nao_aceito_por_padrao(self):
         user = CustomUser.objects.create_user(username='convidado', password='senha-forte-123')
