@@ -2,10 +2,26 @@ from django.contrib import admin
 from .models import Group, GroupMembership, Expense, ExpenseSplit
 from .filters import AmountRangeFilter, AmountOwedRangeFilter, SettlementStatusFilter, HasExpensesFilter, MemberCountFilter
 
+# Permite gerenciar os membros diretamente na tela de edição do grupo
+class GroupMembershipInline(admin.TabularInline):
+    model = GroupMembership
+    extra = 0
+    fields = ('user', 'is_group_admin', 'is_accepted', 'joined_at')
+    readonly_fields = ('joined_at',)
+
+
+# Permite gerenciar as divisões diretamente na tela de edição da despesa
+class ExpenseSplitInline(admin.TabularInline):
+    model = ExpenseSplit
+    extra = 0
+    fields = ('user', 'amount_owed', 'is_paid')
+
+
 # Configuração da classe de administração para o modelo Group
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
     change_list_template = 'admin/groups.html'
+    inlines = [GroupMembershipInline]
     list_display = ('name', 'description', 'invite_code', 'created_by', 'is_active', 'created_at')
     search_fields = ('name', 'invite_code', 'description')
     list_filter = ('is_active', HasExpensesFilter, MemberCountFilter, 'created_by', 'created_at')
@@ -57,6 +73,7 @@ class GroupMembershipAdmin(admin.ModelAdmin):
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
     change_list_template = 'admin/expense.html'
+    inlines = [ExpenseSplitInline]
     list_display = ('title', 'group', 'paid_by', 'created_by', 'amount', 'date', 'created_at')
     list_filter = (AmountRangeFilter, SettlementStatusFilter, 'group', 'paid_by', 'date', 'created_at')
     search_fields = ('title', 'description')
