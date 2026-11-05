@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserChangeForm
 from django.forms.widgets import Widget
 from django.utils.safestring import mark_safe
 from .models import CustomUser
+from .filters import GroupParticipationFilter
 
 # Remove a seção de grupos nativos do Django do painel para manter a interface limpa
 try:
@@ -55,7 +56,7 @@ class CustomUserAdmin(UserAdmin):
     change_list_template = 'admin/users.html'
     
     list_display = ('username', 'first_name', 'last_name', 'email', 'role', 'is_active', 'created_at')
-    list_filter = ('role', 'is_active', 'created_at')
+    list_filter = ('role', 'is_active', GroupParticipationFilter, 'created_at')
     search_fields = ('username', 'email', 'first_name', 'last_name')
     
     fieldsets = (
