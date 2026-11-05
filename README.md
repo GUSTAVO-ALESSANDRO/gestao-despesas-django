@@ -59,7 +59,15 @@ pip install -r requirements.txt
 
 ```
 
-5. Configure as credenciais de acesso ao banco de dados PostgreSQL no arquivo de configurações do Django e aplique as migrações para criar as tabelas:
+5. Crie o arquivo `.env` a partir do modelo e preencha a `SECRET_KEY` e as credenciais de acesso ao banco de dados PostgreSQL:
+
+```bash
+cp .env.example .env
+python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+
+```
+
+6. Aplique as migrações para criar as tabelas:
 
 ```bash
 python3 manage.py makemigrations

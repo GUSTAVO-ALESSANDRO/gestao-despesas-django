@@ -12,5 +12,10 @@ class CustomUser(AbstractUser):
     is_active = models.BooleanField("Ativo", default=True) # Para exclusão lógica
     created_at = models.DateTimeField("Cadastrado em", auto_now_add=True)
 
+    class Meta(AbstractUser.Meta):
+        verbose_name = "Usuário"
+        verbose_name_plural = "Usuários"
+        ordering = ['username']
+
     def __str__(self):
         return f"{self.username} ({self.role})"
